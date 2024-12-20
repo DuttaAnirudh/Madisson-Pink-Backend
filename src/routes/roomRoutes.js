@@ -8,4 +8,6 @@ router
   .get(roomController.getAllRoomTypes)
   .post(roomController.createRoomType);
 
+router.route('/room-types/:id').patch(roomController.updateRoomType);
+
 module.exports = router;
