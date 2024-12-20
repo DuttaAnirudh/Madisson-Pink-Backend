@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const roomTypeSchema = mongoose.Schema(
   {
@@ -6,6 +7,7 @@ const roomTypeSchema = mongoose.Schema(
       type: String,
       required: [true, 'A room type must have a name'],
       maxLength: [25, "A name can't have more than 25 charectors"],
+      unique: true,
     },
     basePrice: {
       type: Number,
@@ -26,6 +28,7 @@ const roomTypeSchema = mongoose.Schema(
       required: [true, 'A room type must have a Maximum Oppupancy'],
     },
     standardAmenities: [String],
+    slug: String,
     totalRoomsOfThisType: {
       type: Number,
       required: [true, 'Total number of rooms for this type must be specified'],
@@ -73,8 +76,33 @@ const roomTypeSchema = mongoose.Schema(
 
 // Pre-save hook to ensure the initial available rooms match total rooms
 roomTypeSchema.pre('save', function (next) {
+  // 'this' refers to the document
   if (this.isNew && this.currentAvailabiltyOfThisType === undefined) {
     this.currentAvailabiltyOfThisType = this.totalRoomsOfThisType;
+  }
+  next();
+});
+
+// Pre-save hook to add a slug to the document based on name of the room-type
+roomTypeSchema.pre('save', function (next) {
+  // 'this' refers to the document
+  this.slug = slugify(this.name, { lower: true });
+
+  next();
+});
+
+// Query Middleware: Update slug when the name of the room type is updated
+roomTypeSchema.pre('findOneAndUpdate', function (next) {
+  // 'this' refers to the document
+  const update = this.getUpdate(); // Gets the update operations being performed
+
+  // Check if name is being updated
+  if (update.name) {
+    // If name is being updated, we set new updates using setUpdate
+    this.setUpdate({
+      ...update, // Spread existing updates
+      slug: slugify(update.name, { lower: true }), // Add the new slug
+    });
   }
   next();
 });

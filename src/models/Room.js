@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const roomSchema = mongoose.Schema(
   {
@@ -10,6 +11,7 @@ const roomSchema = mongoose.Schema(
     roomNumber: {
       type: String,
       required: [true, 'A room must have a name'],
+      unique: true,
     },
     capacity: {
       type: Number,
@@ -24,6 +26,7 @@ const roomSchema = mongoose.Schema(
       type: String,
       required: [true, 'A room must have a floor specified'],
     },
+    slug: String,
     specificAmenities: {
       type: [String],
       default: [],
@@ -36,6 +39,13 @@ const roomSchema = mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// Pre-save hook to add a slug to the document based on name of the room-type
+roomSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+
+  next();
+});
 
 const Room = mongoose.model('Room', roomSchema);
 

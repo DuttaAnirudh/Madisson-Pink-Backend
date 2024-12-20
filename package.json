@@ -16,6 +16,7 @@
     "mongoose": "^8.9.0",
     "morgan": "^1.10.0",
     "pug": "^3.0.3",
+    "slugify": "^1.6.6",
     "validator": "^13.12.0"
   },
   "devDependencies": {
@@ -28,5 +29,8 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.2",
     "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
