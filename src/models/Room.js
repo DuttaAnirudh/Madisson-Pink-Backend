@@ -42,7 +42,7 @@ const roomSchema = mongoose.Schema(
 
 // Pre-save hook to add a slug to the document based on name of the room-type
 roomSchema.pre('save', function (next) {
-  this.slug = slugify(this.name, { lower: true });
+  this.slug = slugify(this.roomNumber, { lower: true });
 
   next();
 });
