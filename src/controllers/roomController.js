@@ -40,17 +40,21 @@ exports.createRoomType = async (req, res, next) => {
 // UPDATE: Room Type
 exports.updateRoomType = async (req, res, next) => {
   try {
-    console.log(req.params.id);
-
-    const roomType = await RoomType.findByIdAndUpdate(req.params.id, req.body, {
-      new: true, // return new document
-      runValidators: true,
-    });
+    // Update room type based by taking roomType slug from the params in the url
+    const roomType = await RoomType.findOneAndUpdate(
+      { slug: req.params.roomType },
+      req.body,
+      {
+        new: true, // return new document
+        runValidators: true,
+      },
+    ).select('-_id -__v');
 
     if (!roomType) {
       throw new Error('Unable to update Room type');
     }
 
+    // send the OK response with the updated data
     res.status(200).json({
       status: 'success',
       data: { data: roomType },

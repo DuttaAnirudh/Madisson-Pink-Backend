@@ -9,7 +9,7 @@ router
   .get(roomController.getAllRoomTypes)
   .post(roomController.createRoomType);
 
-router.route('/room-types/:id').patch(roomController.updateRoomType);
+router.route('/room-types/:roomType').patch(roomController.updateRoomType);
 
 // ROOM ROUTES
 router.route('/').get(roomController.getAllRooms);
