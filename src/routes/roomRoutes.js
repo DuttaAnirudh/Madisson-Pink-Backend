@@ -14,6 +14,9 @@ router.route('/room-types/:id').patch(roomController.updateRoomType);
 // ROOM ROUTES
 router.route('/').get(roomController.getAllRooms);
 router.route('/new-room/:roomType').post(roomController.createRoom);
-router.route('/:roomName').get(roomController.getRoom);
+router
+  .route('/:roomName')
+  .get(roomController.getRoom)
+  .patch(roomController.updateRoom);
 
 module.exports = router;

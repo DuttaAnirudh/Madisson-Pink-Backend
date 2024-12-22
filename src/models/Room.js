@@ -47,6 +47,32 @@ roomSchema.pre('save', function (next) {
   next();
 });
 
+// Query Middleware: Update slug when the roomNumber of the room is updated
+roomSchema.pre('findOneAndUpdate', function (next) {
+  // 'this' refers to the document
+  const update = this.getUpdate(); // Gets the update operations being performed
+
+  // Check if roomNumber is being updated
+  if (update.roomNumber) {
+    // If roomNumber is being updated, we set new updates using setUpdate
+    this.setUpdate({
+      ...update, // Spread existing updates
+      slug: slugify(update.roomNumber, { lower: true }), // Add the new slug
+    });
+  }
+  next();
+});
+
+// Populating room type in room data
+roomSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'roomType',
+    select: '-_id',
+  });
+
+  next();
+});
+
 const Room = mongoose.model('Room', roomSchema);
 
 module.exports = Room;

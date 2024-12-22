@@ -7,11 +7,19 @@ const Room = require('../models/Room');
  */
 
 // GET: All Room Types
-exports.getAllRoomTypes = (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    body: req.body,
-  });
+exports.getAllRoomTypes = async (req, res, next) => {
+  try {
+    // Getting all the rooom types in the rooomTypes db
+    // remove 'id' and 'v' from the response
+    const roomTypes = await RoomType.find().select('-_id -__v');
+
+    res.status(200).json({
+      status: 'success',
+      data: { data: roomTypes },
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // CREATE: Room Type
@@ -113,6 +121,32 @@ exports.createRoom = async (req, res, next) => {
     const room = await Room.create(req.body);
 
     // Sending the response with new room data
+    res.status(200).json({
+      status: 'success',
+      data: { room },
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.updateRoom = async (req, res, next) => {
+  try {
+    // Finding the roomNumber which is same as the one in params in the url
+    const room = await Room.findOneAndUpdate(
+      { slug: req.params.roomName },
+      req.body,
+      {
+        new: true, // return new document
+        runValidators: true,
+      },
+    );
+
+    if (!room) {
+      throw new Error('Unable to update Room type');
+    }
+
+    // Send the response after the room is updated
     res.status(200).json({
       status: 'success',
       data: { room },
