@@ -28,7 +28,7 @@ exports.createRoomType = async (req, res, next) => {
     console.log(req.body);
     const newRoomType = await RoomType.create(req.body);
 
-    res.status(200).json({
+    res.status(201).json({
       status: 'success',
       data: { data: newRoomType },
     });
@@ -125,7 +125,7 @@ exports.createRoom = async (req, res, next) => {
     const room = await Room.create(req.body);
 
     // Sending the response with new room data
-    res.status(200).json({
+    res.status(201).json({
       status: 'success',
       data: { room },
     });

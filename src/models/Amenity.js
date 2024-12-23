@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const amenitySchema = mongoose.Schema(
   {
@@ -35,6 +36,7 @@ const amenitySchema = mongoose.Schema(
         'housekeeping',
       ],
     },
+    slug: String,
     availability: {
       type: Boolean,
       default: true,
@@ -79,7 +81,7 @@ const amenitySchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    advanceBookingRequired: {
+    advanceBookingTimeRequired: {
       type: Number, // in hours
       default: 0,
     },
@@ -124,11 +126,35 @@ const amenitySchema = mongoose.Schema(
 
 // Validate advance booking time if required
 amenitySchema.pre('save', function (next) {
-  if (this.requiresAdvanceBooking && this.advanceBookingRequired <= 0) {
+  if (this.requiresAdvanceBooking && this.advanceBookingTimeRequired <= 0) {
     throw new Error(
       'Advance booking time must be positive when advance booking is required',
     );
   }
+  next();
+});
+
+// Create a slug for the name of the amenity when a new amenity is created or saved
+amenitySchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+
+  next();
+});
+
+// Query Middleware: Update slug when the name of the amenity is updated
+amenitySchema.pre('findOneAndUpdate', function (next) {
+  // 'this' refers to the document
+  const update = this.getUpdate(); // Gets the update operations being performed
+
+  // Check if roomNumber is being updated
+  if (update.name) {
+    // If name is being updated, we set new updates using setUpdate
+    this.setUpdate({
+      ...update, // Spread existing updates
+      slug: slugify(update.name, { lower: true }), // Add the new slug
+    });
+  }
+
   next();
 });
 
