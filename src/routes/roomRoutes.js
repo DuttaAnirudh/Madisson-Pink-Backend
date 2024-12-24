@@ -12,8 +12,11 @@ router
 router.route('/room-types/:roomType').patch(roomController.updateRoomType);
 
 // ROOM ROUTES
-router.route('/').get(roomController.getAllRooms);
-router.route('/new-room/:roomType').post(roomController.createRoom);
+router
+  .route('/')
+  .get(roomController.getAllRooms)
+  .post(roomController.createRoom);
+
 router
   .route('/:roomName')
   .get(roomController.getRoom)

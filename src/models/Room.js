@@ -27,10 +27,13 @@ const roomSchema = mongoose.Schema(
       required: [true, 'A room must have a floor specified'],
     },
     slug: String,
-    specificAmenities: {
-      type: [String],
-      default: [],
-    },
+    specificAmenities: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Amenity',
+        default: [],
+      },
+    ],
     currentBooking: {
       type: mongoose.Schema.ObjectId,
       ref: 'Booking',
@@ -63,11 +66,14 @@ roomSchema.pre('findOneAndUpdate', function (next) {
   next();
 });
 
-// Populating room type in room data
+// Populating room type and specific amenities in room data
 roomSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'roomType',
-    select: '-_id',
+    select: '-_id -__v',
+  }).populate({
+    path: 'specificAmenities',
+    select: '-_id -__v',
   });
 
   next();

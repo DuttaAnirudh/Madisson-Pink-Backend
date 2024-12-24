@@ -1,5 +1,6 @@
 const RoomType = require('../models/RoomType');
 const Room = require('../models/Room');
+const Amenity = require('../models/Amenity');
 
 /////////////////////////////////////////////////
 /**
@@ -106,7 +107,7 @@ exports.getRoom = async (req, res, next) => {
 exports.createRoom = async (req, res, next) => {
   try {
     // getting the room type slug from the url
-    const roomTypeSlug = req.params.roomType;
+    const { roomTypeSlug, amenitiesSlug } = req.body;
 
     // getting the room type id from the db
     const roomTypeId = await RoomType.findOne(
@@ -118,8 +119,16 @@ exports.createRoom = async (req, res, next) => {
       throw new Error('Unable to create a room');
     }
 
+    // getting the ids of all the amenities from the db
+    const amenities = await Amenity.find({
+      slug: { $in: amenitiesSlug },
+    }).select('_id');
+
     // adding room type id to the request body
     req.body.roomType = roomTypeId._id;
+
+    // adding amenities id into request body
+    req.body.specificAmenities = amenities || [];
 
     // Creating a new room
     const room = await Room.create(req.body);
