@@ -1,6 +1,7 @@
 const RoomType = require('../models/RoomType');
 const Room = require('../models/Room');
 const Amenity = require('../models/Amenity');
+const { Query } = require('mongoose');
 
 /////////////////////////////////////////////////
 /**
@@ -72,9 +73,48 @@ exports.updateRoomType = async (req, res, next) => {
 
 exports.getAllRooms = async (req, res, next) => {
   try {
+    const queryObj = { ...req.query };
+    const excludeFields = ['sort', 'page', 'limit', 'fields'];
+    excludeFields.forEach((field) => delete queryObj[field]);
+
+    let queryStr = JSON.stringify(queryObj);
+
+    // FILTERING
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
+    let query = Room.find(JSON.parse(queryStr));
+
+    // SORTING
+    if (req.query.sort) {
+      const sortyBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortyBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // FIELD LIMITING
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-_id -__v');
+    }
+
+    // PAGINATION
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit); //page=2&limit=10 --> page1: 1-10, page2:11-20
+
+    if (req.query.page) {
+      const numRooms = await Room.countDocuments(); // returns the total number of documents in a collection
+
+      if (skip >= numRooms) throw new Error('This page does not exist');
+    }
+
     // Getting all the roooms in the roooms db
     // remove 'id' and 'v' from the response
-    const rooms = await Room.find().select('-_id -__v');
+    const rooms = await query;
 
     // send all the room in response
     res.status(200).json({
