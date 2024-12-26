@@ -1,13 +1,22 @@
 const Amenity = require('../models/Amenity');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.getAllAmenties = async (req, res, next) => {
   try {
-    // GET all the amenities available
-    // remove 'id' and 'v' from the response
-    const amenities = await Amenity.find().select('-_id -__v');
+    // Getting all the amenities in the amenities db if no queries are present in the url
+    // else mutate and return data based on the queries in the url
+    // The chaining below works because we have returned 'this' after calling each of the following methods
+    const features = new APIFeatures(Amenity.find(), req.query)
+      .filter()
+      .sort()
+      .fieldLimiting()
+      .pagination();
+
+    const amenities = await features.query;
 
     res.status(200).json({
       status: 'success',
+      results: amenities.length,
       data: { amenities },
     });
   } catch (err) {
