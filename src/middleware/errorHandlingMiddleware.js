@@ -1,3 +1,26 @@
+const AppError = require('../utils/errorHandler');
+
+// Error Handling: Invalid Pathname
+const handleCastErrorDb = (err) => {
+  const message = `Invalid Path - ${err.path} : ${err.value}`;
+  return new AppError(message, 400);
+};
+
+// Error Handling: Duplicate Field(input values)
+const handleDuplicateFieldDB = (err) => {
+  const value = err.errorResponse.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  const message = `Duplicate field value: ${value}, Please use another value!`;
+  return new AppError(message, 400);
+};
+
+// Error Handling: Validation Errors
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map((el) => el.message);
+
+  const message = `Invalid input data. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 // DEFINING ERROR IN 'DEVELOPMENT' MODE
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -35,8 +58,28 @@ module.exports = (err, req, res, next) => {
   err.status = err.status || 'error';
 
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
-  } else if (process.env.NODE_ENV === 'production') {
-    sendErrorProd(err, res);
+    return sendErrorDev(err, res);
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    const errorName = err.name;
+    let error = { ...err };
+
+    // Handling Invalid Pathname
+    if (errorName === 'CastError') {
+      error = handleCastErrorDb(err);
+    }
+
+    // Handling Duplicate Field(input values)
+    if (err.code === 11000) {
+      error = handleDuplicateFieldDB(err);
+    }
+
+    // Handling Validation Errors
+    if (errorName === 'ValidationError') {
+      error = handleValidationErrorDB(err);
+    }
+
+    return sendErrorProd(error, res);
   }
 };

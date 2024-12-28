@@ -112,7 +112,11 @@ exports.createRoom = catchAsync(async (req, res, next) => {
     'Object_id',
   );
 
-  next(new AppError('Failed to create a room. Invalid Room Type', 400));
+  if (!roomTypeId) {
+    return next(
+      new AppError('Failed to create a room. Invalid Room Type', 400),
+    );
+  }
 
   // getting the ids of all the amenities from the db
   const amenities = await Amenity.find({
