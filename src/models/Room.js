@@ -13,10 +13,6 @@ const roomSchema = mongoose.Schema(
       required: [true, 'A room must have a name'],
       unique: true,
     },
-    capacity: {
-      type: Number,
-      required: true,
-    },
     status: {
       type: String,
       enum: ['booked', 'available'],
@@ -47,6 +43,25 @@ const roomSchema = mongoose.Schema(
 roomSchema.pre('save', function (next) {
   this.slug = slugify(this.roomNumber, { lower: true });
 
+  next();
+});
+
+// Pre-save middleware to update roomType counts data
+roomSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    // Only run this middleware for new rooms
+    try {
+      // Update the roomType document
+      await mongoose.model('RoomType').findByIdAndUpdate(this.roomType, {
+        $inc: {
+          totalRoomsOfThisType: 1,
+          currentAvailabiltyOfThisType: 1,
+        },
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
   next();
 });
 

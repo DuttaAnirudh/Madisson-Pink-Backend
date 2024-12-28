@@ -31,8 +31,8 @@ const roomTypeSchema = mongoose.Schema(
     slug: String,
     totalRoomsOfThisType: {
       type: Number,
-      required: [true, 'Total number of rooms for this type must be specified'],
       min: [0, 'Total rooms cannot be negative'],
+      default: 0,
     },
     seasonalPricing: [
       {
@@ -60,7 +60,6 @@ const roomTypeSchema = mongoose.Schema(
     currentAvailabiltyOfThisType: {
       type: Number,
       min: [0, 'Current availability cannot be negative'],
-      required: true,
       validate: {
         validator: function (value) {
           return value <= this.totalRoomsOfThisType;
