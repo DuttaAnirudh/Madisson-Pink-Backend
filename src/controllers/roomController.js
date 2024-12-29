@@ -156,3 +156,78 @@ exports.updateRoom = catchAsync(async (req, res, next) => {
     data: { room },
   });
 });
+
+// GET: All the rooms which are available and not booked
+exports.getRoomsAvailable = catchAsync(async (req, res, next) => {
+  const availableRooms = await Room.aggregate([
+    // Match only available rooms
+    {
+      $match: {
+        status: 'available',
+      },
+    },
+    // Lookup to populate roomType data
+    {
+      $lookup: {
+        from: 'roomtypes', // The collection to join with
+        localField: 'roomType', // Field from the rooms collection
+        foreignField: '_id', // Field from the roomtypes collection
+        as: 'roomTypeData', // Name of the new array field
+      },
+    },
+    // Lookup to populate specific amenity data
+    {
+      $lookup: {
+        from: 'amenities', // The collection to join with
+        localField: 'specificAmenities', // Field from the rooms collection
+        foreignField: '_id', // Field from the roomtypes collection
+        as: 'amenitiesData', // Name of the new array field
+      },
+    },
+    // Unwind the roomTypeData array created by lookup
+    // Deconstructs the roomTypeData array field
+    // Converts the array created by $lookup into a single object
+    // Necessary because $lookup creates an array even for single matches
+    {
+      $unwind: '$roomTypeData',
+    },
+    // Group rooms by roomType
+    {
+      $group: {
+        _id: '$roomTypeData.name', // Group by room type name
+        roomsAvailableOfThisType: { $sum: 1 }, // Count rooms in each group
+        rooms: {
+          // Create array of room details
+          $push: {
+            slug: '$slug',
+            roomNumber: '$roomNumber',
+            status: '$status',
+            roomType: '$roomTypeData',
+            floor: '$floor',
+            amenities: {
+              $map: {
+                input: '$amenitiesData',
+                as: 'amenity',
+                in: '$$amenity.name',
+              },
+            },
+          },
+        },
+      },
+    },
+    // Final project to format the output
+    {
+      $project: {
+        _id: 0,
+        roomType: '$_id',
+        roomsAvailableOfThisType: 1,
+        rooms: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: { data: availableRooms },
+  });
+});

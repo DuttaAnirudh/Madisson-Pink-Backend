@@ -12,6 +12,8 @@ router
 router.route('/room-types/:roomType').patch(roomController.updateRoomType);
 
 // ROOM ROUTES
+router.route('/available').get(roomController.getRoomsAvailable);
+
 router
   .route('/')
   .get(roomController.getAllRooms)
