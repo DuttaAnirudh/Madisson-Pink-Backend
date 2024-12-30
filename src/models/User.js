@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 const userSchema = mongoose.Schema(
   {
@@ -72,6 +73,17 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: true },
 );
+
+userSchema.pre('save', async function (next) {
+  // If the password is not changed(modified), go to next middleware
+  // Only run this function if the password was actually modified
+  if (!this.isModified('password')) return next();
+
+  // Hash the password using bcrypt with cost of 16
+  this.password = await bcrypt.hash(this.password, 16);
+
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 

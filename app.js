@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 
 const roomRouter = require('./src/routes/roomRoutes');
 const amenityRouter = require('./src/routes/amenityRoutes');
+const userRouter = require('./src/routes/userRoutes');
+
 const AppError = require('./src/utils/errorHandler');
 const errorHandlingMiddleware = require('./src/middleware/errorHandlingMiddleware');
 
@@ -17,6 +19,7 @@ app.use(bodyParser.json());
 
 app.use('/api/v1/rooms', roomRouter);
 app.use('/api/v1/amenities', amenityRouter);
+app.use('/api/v1/users', userRouter);
 
 app.use('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
