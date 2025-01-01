@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+// const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/errorHandler');
 const User = require('../models/User');
+const { signToken } = require('../utils/signToken');
 
 exports.signup = catchAsync(async (req, res, next) => {
   // Creating a new user in 'Users' collection
@@ -13,11 +13,10 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
   });
 
-  const secret = process.env.JWT_SECRET; // JWT Secret
-  const expires = process.env.JWT_EXPIRES_IN; // JWT token should expire in 'x' time
+  // Creating a JWT token
+  const token = signToken(newUser._id);
 
-  const token = jwt.sign({ id: newUser._id }, secret, { expiresIn: expires });
-
+  // Sending response with the token
   res.status(201).json({
     status: 'success',
     token,
@@ -42,11 +41,8 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  // 3.) If everything ok, send the token to the client
-  const secret = process.env.JWT_SECRET; // JWT Secret
-  const expires = process.env.JWT_EXPIRES_IN; // JWT token should expire in 'x' time
-
-  const token = jwt.sign({ id: user._id }, secret, { expiresIn: expires });
+  // 3.) If everything ok, generate a token and send it to the client
+  const token = signToken(user._id);
 
   res.status(200).json({
     status: 'success',
