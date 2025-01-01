@@ -2,7 +2,7 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/errorHandler');
 const User = require('../models/User');
-const { signToken } = require('../utils/signToken');
+const signToken = require('../utils/signToken');
 
 exports.signup = catchAsync(async (req, res, next) => {
   // Creating a new user in 'Users' collection
@@ -13,7 +13,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
   });
 
-  // Creating a JWT token
+  // Creating a JWT
   const token = signToken(newUser._id);
 
   // Sending response with the token
@@ -42,7 +42,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3.) If everything ok, generate a token and send it to the client
-  const token = signToken(user._id);
+  const token = signToken(user._id, next);
 
   res.status(200).json({
     status: 'success',

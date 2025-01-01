@@ -70,6 +70,7 @@ const userSchema = mongoose.Schema(
     resetPasswordToken: String,
     resetPasswordTokenExpires: Date,
     lastLogin: Date,
+    passwordWasChangedAt: Date,
   },
   { timestamps: true },
 );
@@ -85,11 +86,36 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// METHOD: this method checks if the password enter by the user ir correct.
+// It takes in the password entered and compares it with the hashed password
+// and returns a boolean
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// METHOD: this methods checks if the password of the user account
+// 1. was ever changed or
+// 2. was changed before or after the JWT was issued
+userSchema.methods.passwordWasChanged = function (JWTtimestamp) {
+  if (this.passwordWasChangedAt) {
+    // Calculate the time when the password was changed
+    const changedTimestemp = parseInt(
+      this.passwordWasChangedAt.getTime() / 1000,
+      10,
+    );
+
+    // return a boolean which tell if the password was changed before or after the JWT was issued
+    // The condition below checks if the JWT timestamp is less or more than the time when password was changed
+    return JWTtimestamp < changedTimestemp;
+  }
+
+  // If passwordChanged does not exist,
+  // that means the user has never changed the password
+  // so we can return false
+  return false;
 };
 
 const User = mongoose.model('User', userSchema);
