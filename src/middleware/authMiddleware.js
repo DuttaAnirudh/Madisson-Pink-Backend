@@ -24,7 +24,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET); // jwt.verify uses a callback-based API by default. By promisifying it, we can use async/await syntax instead of callbacks, making the code cleaner and easier to handle errors.
 
   // 3.) Check if user still exist
-  const freshUser = User.findbyId(decoded.id);
+  const freshUser = await User.findById(decoded.id);
 
   if (!freshUser) {
     return next(
@@ -48,3 +48,17 @@ exports.protect = catchAsync(async (req, res, next) => {
   // If everything is fine, move on to the next route
   next();
 });
+
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    // If the user role available in the req.user is not present in 'roles' array, then return an error
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403),
+      );
+    }
+
+    // else grant access to the route
+    next();
+  };

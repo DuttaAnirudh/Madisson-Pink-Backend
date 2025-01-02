@@ -8,9 +8,19 @@ const router = express.Router();
 router
   .route('/room-types')
   .get(roomController.getAllRoomTypes)
-  .post(roomController.createRoomType);
+  .post(
+    authMiddleware.protect,
+    authMiddleware.restrictTo('admin'),
+    roomController.createRoomType,
+  );
 
-router.route('/room-types/:roomType').patch(roomController.updateRoomType);
+router
+  .route('/room-types/:roomType')
+  .patch(
+    authMiddleware.protect,
+    authMiddleware.restrictTo('admin'),
+    roomController.updateRoomType,
+  );
 
 // ROOM ROUTES
 router.route('/available').get(roomController.getRoomsAvailable);
@@ -18,11 +28,19 @@ router.route('/available').get(roomController.getRoomsAvailable);
 router
   .route('/')
   .get(roomController.getAllRooms)
-  .post(roomController.createRoom);
+  .post(
+    authMiddleware.protect,
+    authMiddleware.restrictTo('admin'),
+    roomController.createRoom,
+  );
 
 router
   .route('/:roomName')
   .get(roomController.getRoom)
-  .patch(roomController.updateRoom);
+  .patch(
+    authMiddleware.protect,
+    authMiddleware.restrictTo('admin'),
+    roomController.updateRoom,
+  );
 
 module.exports = router;
